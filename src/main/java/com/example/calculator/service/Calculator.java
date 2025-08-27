@@ -11,7 +11,7 @@ public class Calculator {
     public void subtract(int a, int b) {
         for(int i = 0; i <=100; i++)
         {
-            System.out.println(i);
+            System.out.println(i + "number");
         }
     }
 }
