@@ -8,10 +8,9 @@ pipeline {
                 git url: "https://github.com/Onantabee/Calculator.git", branch: "main"
             }
         }
-        stage('Compile') {
+        stage('Linux Permission') {
             steps {
                 sh "chmod +x gradlew"
-                sh "./gradlew compileJava"
             }
         }
         stage('Unit Test') {
@@ -46,12 +45,24 @@ pipeline {
                                   ])
                }
         }
-    }
+        stage('Build') {
+            steps {
+                sh "./gradlew build"
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh "docker tag dorati-app localhost:5000/dorati"
+                sh "docker push localhost:5000/dorati"
+            }
+        }
+        }
     post {
         success {
             mail to: 'onantab47@gmail.com',
                 subject: "Completed Pipeline: ${currentBuild.fullDisplayName}",
                 body: "Your build completed, please check: ${env.BUILD_URL}"
+            slackSend channel: '#first-channel', color: 'green', message: "The pipeline ${currentBuild.fullDisplayName} completed successfully. Check it here: ${env.BUILD_URL}"
         }
     }
 }
