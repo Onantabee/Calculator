@@ -58,11 +58,11 @@ pipeline {
         }
         }
     post {
-        success {
+        always {
             mail to: 'onantab47@gmail.com',
                 subject: "Completed Pipeline: ${currentBuild.fullDisplayName}",
                 body: "Your build completed, please check: ${env.BUILD_URL}"
-            slackSend channel: '#first-channel', color: 'green', message: "The pipeline ${currentBuild.fullDisplayName} completed successfully. Check it here: ${env.BUILD_URL}"
+            slackSend channel: '#oma-test-channel', color: 'green', message: "The pipeline ${currentBuild.fullDisplayName} result."
         }
     }
 }
