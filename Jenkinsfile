@@ -11,6 +11,7 @@ pipeline {
         stage('Linux Permission') {
             steps {
                 sh "chmod +x gradlew"
+                sh "docker version"
             }
         }
         stage('Unit Test') {
