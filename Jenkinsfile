@@ -1,6 +1,6 @@
 pipeline {
 
-    agent { label 'calculator' }
+    agent { label 'pipeline' }
 
     stages {
         stage('Checkout') {
@@ -10,7 +10,7 @@ pipeline {
         }
         stage('Linux Permission') {
             steps {
-                sh "chmod +x gradlew"
+                //sh "chmod +x gradlew"
                 sh "docker version"
             }
         }
@@ -49,12 +49,13 @@ pipeline {
         stage('Build') {
             steps {
                 sh "./gradlew build"
+                sh "docker build -t onantabee/calculator"
             }
         }
         stage('Deploy') {
             steps {
-                sh "docker tag dorati-app localhost:5000/dorati"
-                sh "docker push localhost:5000/dorati"
+//                 sh "docker tag dorati-app localhost:5000/dorati"
+                sh "docker push onantabee/calculator"
             }
         }
         }
