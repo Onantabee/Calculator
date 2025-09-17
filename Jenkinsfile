@@ -72,7 +72,10 @@ pipeline {
                         usernameVariable: 'DOCKER_USERNAME',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )]) {
-                        sh "docker login -u \$DOCKER_USERNAME --password-stdin <<< \$DOCKER_PASSWORD"
+                        // Disable credential store to avoid keychain issues
+                        sh 'mkdir -p ~/.docker && echo "{\\"credsStore\\": \\"\\"}" > ~/.docker/config.json'
+
+                        sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin"
                         sh "docker push onantabee/calculator:latest"
                     }
                 }
