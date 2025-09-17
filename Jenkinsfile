@@ -67,10 +67,19 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'docker-hub-credentials',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )]) {
                         sh '''
                             mkdir -p /var/jenkins/.docker-tmp
-                            echo "$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "$DOCKER_USER" --password-stdin
+                            cat > /var/jenkins/.docker-tmp/config.json <<EOF
+                            {
+                              "auths": {}
+                            }
+                            EOF
+                            echo "\$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "\$DOCKER_USER" --password-stdin
                             docker --config /var/jenkins/.docker-tmp push onantabee/calculator:latest
                         '''
                     }
