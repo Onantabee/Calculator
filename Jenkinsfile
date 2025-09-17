@@ -72,16 +72,12 @@ pipeline {
                         usernameVariable: 'DOCKER_USERNAME',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )]) {
-                        // Method 1: Use direct login without credential storage
+                        // Login securely without using keychain or credsStore
                         sh """
-                            # Completely disable any credential helpers
-                            mkdir -p ~/.docker
-                            echo '{"credsStore": ""}' > ~/.docker/config.json
-
-                            # Login using direct method (bypasses credential storage entirely)
-                            docker login -u "\$DOCKER_USERNAME" -p "\$DOCKER_PASSWORD"
+                            echo "\$DOCKER_PASSWORD" | docker login -u "\$DOCKER_USERNAME" --password-stdin
                         """
 
+                        // Push image to Docker Hub
                         sh "docker push onantabee/calculator:latest"
                     }
                 }
