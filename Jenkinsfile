@@ -72,16 +72,13 @@ pipeline {
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )]) {
-                        sh """
+                        sh '''
                             mkdir -p /var/jenkins/.docker-tmp
-                            cat > /var/jenkins/.docker-tmp/config.json <<EOF
-                            {
-                              "auths": {}
-                            }
-                            EOF
-                            echo "\\$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "\\$DOCKER_USER" --password-stdin
+                            echo '{ "auths": {} }' | tee /var/jenkins/.docker-tmp/config.json
+
+                            echo "$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "$DOCKER_USER" --password-stdin
                             docker --config /var/jenkins/.docker-tmp push onantabee/calculator:latest
-                        """
+                        '''
                     }
                 }
             }
