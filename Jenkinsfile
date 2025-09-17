@@ -73,14 +73,11 @@ pipeline {
                         passwordVariable: 'DOCKER_PASSWORD'
                     )]) {
                         sh """
-                            # Create temporary docker config to bypass macOS Keychain
                             mkdir -p /var/jenkins/.docker-tmp
 
-                            # Secure login (no credsStore involved)
                             echo "\$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "\$DOCKER_USERNAME" --password-stdin
 
-                            # Push image to Docker Hub
-                            docker --config /var/jenkins/.docker-tmp push $DOCKER_IMAGE
+                            docker --config /var/jenkins/.docker-tmp push ${env.DOCKER_IMAGE}
                         """
                     }
                 }
