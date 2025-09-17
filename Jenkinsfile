@@ -72,13 +72,17 @@ pipeline {
                         usernameVariable: 'DOCKER_USERNAME',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )]) {
-                        // Login securely without using keychain or credsStore
                         sh """
-                            echo "\$DOCKER_PASSWORD" | docker login -u "\$DOCKER_USERNAME" --password-stdin
-                        """
+                            # Force disable credsStore for Jenkins agent
+                            mkdir -p /var/jenkins/.docker
+                            echo '{"credsStore": ""}' > /var/jenkins/.docker/config.json
 
-                        // Push image to Docker Hub
-                        sh "docker push onantabee/calculator:latest"
+                            # Login securely
+                            echo "\$DOCKER_PASSWORD" | docker login -u "\$DOCKER_USERNAME" --password-stdin
+
+                            # Push to Docker Hub
+                            docker push onantabee/calculator:latest
+                        """
                     }
                 }
             }
