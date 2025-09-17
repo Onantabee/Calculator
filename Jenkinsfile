@@ -73,15 +73,14 @@ pipeline {
                         passwordVariable: 'DOCKER_PASSWORD'
                     )]) {
                         sh """
-                            # Force disable credsStore for Jenkins agent
-                            mkdir -p /var/jenkins/.docker
-                            echo '{"credsStore": ""}' > /var/jenkins/.docker/config.json
+                            # Create temporary docker config to bypass macOS Keychain
+                            mkdir -p /var/jenkins/.docker-tmp
 
-                            # Login securely
-                            echo "\$DOCKER_PASSWORD" | docker login -u "\$DOCKER_USERNAME" --password-stdin
+                            # Secure login (no credsStore involved)
+                            echo "\$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "\$DOCKER_USERNAME" --password-stdin
 
-                            # Push to Docker Hub
-                            docker push onantabee/calculator:latest
+                            # Push image to Docker Hub
+                            docker --config /var/jenkins/.docker-tmp push $DOCKER_IMAGE
                         """
                     }
                 }
