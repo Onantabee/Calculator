@@ -75,8 +75,17 @@ pipeline {
                         sh """
                             mkdir -p /var/jenkins/.docker-tmp
 
+                            # Write a clean config.json that disables credsStore
+                            cat > /var/jenkins/.docker-tmp/config.json <<EOF
+                            {
+                              "auths": {}
+                            }
+                            EOF
+
+                            # Login without touching macOS Keychain
                             echo "\$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "\$DOCKER_USERNAME" --password-stdin
 
+                            # Push the image
                             docker --config /var/jenkins/.docker-tmp push ${env.DOCKER_IMAGE}
                         """
                     }
