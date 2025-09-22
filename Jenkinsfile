@@ -51,33 +51,34 @@ pipeline {
         }
 
         stage('Build') {
-                    steps {
-                        sh "./gradlew build"
-                        withCredentials([usernamePassword(
-                            credentialsId: 'docker-hub-credentials',
-                            usernameVariable: 'DOCKER_USER',
-                            passwordVariable: 'DOCKER_PASS'
-                        )]) {
-                            sh '''
-                                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            '''
-                            sh "docker build -t onantabee/calculator:latest ."
-                        }
-                    }
+            steps {
+                sh "./gradlew build"
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    '''
+                    sh "docker build -t onantabee/calculator:latest ."
                 }
+            }
+        }
 
-                stage('Deploy') {
-                    steps {
-                        withCredentials([usernamePassword(
-                            credentialsId: 'docker-hub-credentials',
-                            usernameVariable: 'DOCKER_USER',
-                            passwordVariable: 'DOCKER_PASS'
-                        )]) {
-                            sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                            sh "docker push onantabee/calculator:latest"
-                        }
-                    }
-    }
+        stage('Deploy') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    sh "docker push onantabee/calculator:latest"
+                }
+            }
+        }
+    } // This closing brace was missing
 
     post {
         always {
