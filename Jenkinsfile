@@ -53,36 +53,58 @@ pipeline {
         stage('Build') {
             steps {
                 sh "./gradlew build"
-                script {
-                    // Verify Dockerfile exists before building
-                    if (fileExists('Dockerfile')) {
-                        sh "docker build -t onantabee/calculator:latest ."
-                    } else {
-                        error "Dockerfile not found! Available files: ${sh(script: 'ls -la', returnStdout: true)}"
-                    }
-                }
+                sh "docker build -t onantabee/calculator:latest ."
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'docker-hub-credentials',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASSWORD'
-                    )]) {
-                        sh '''
-                            mkdir -p /var/jenkins/.docker-tmp
-                            echo '{ "auths": {} }' | tee /var/jenkins/.docker-tmp/config.json
-
-                            echo "$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "$DOCKER_USER" --password-stdin
-                            docker --config /var/jenkins/.docker-tmp push onantabee/calculator:latest
-                        '''
-                    }
-                }
+                sh "docker push onantabee/calculator:latest"
             }
         }
+
+//         stage('Deploy') {
+//             steps {
+//                 script {
+//                     withCredentials([usernamePassword(
+//                         credentialsId: 'docker-hub-credentials',
+//                         usernameVariable: 'DOCKER_USER',
+//                         passwordVariable: 'DOCKER_PASSWORD'
+//                     )]) {
+//                         sh '''
+//                             mkdir -p /var/jenkins/.docker-tmp
+//                             cat > /var/jenkins/.docker-tmp/config.json <<EOF
+//                             {
+//                               "auths": {}
+//                             }
+//                             EOF
+//                             echo "\$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "\$DOCKER_USER" --password-stdin
+//                             docker --config /var/jenkins/.docker-tmp push onantabee/calculator:latest
+//                         '''
+//                     }
+//                 }
+//             }
+//         }
+
+//         stage('Deploy') {
+//             steps {
+//                 script {
+//                     withCredentials([usernamePassword(
+//                         credentialsId: 'docker-hub-credentials',
+//                         usernameVariable: 'DOCKER_USER',
+//                         passwordVariable: 'DOCKER_PASSWORD'
+//                     )]) {
+//                         sh '''
+//                             mkdir -p /var/jenkins/.docker-tmp
+//                             echo '{ "auths": {} }' | tee /var/jenkins/.docker-tmp/config.json
+//
+//                             echo "$DOCKER_PASSWORD" | docker --config /var/jenkins/.docker-tmp login -u "$DOCKER_USER" --password-stdin
+//                             docker --config /var/jenkins/.docker-tmp push onantabee/calculator:latest
+//                         '''
+//                     }
+//                 }
+//             }
+//         }
     }
 
     post {
