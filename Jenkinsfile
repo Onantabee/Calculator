@@ -54,7 +54,7 @@ pipeline {
             steps {
                 sh "./gradlew build"
                 withCredentials([usernamePassword(
-                    credentialsId: 'docker-hub-creds',
+                    credentialsId: 'docker-hub-credentials',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
@@ -67,7 +67,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'docker-hub-creds',  // Create this in Jenkins
+                    credentialsId: 'docker-hub-credentials',  // Create this in Jenkins
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
