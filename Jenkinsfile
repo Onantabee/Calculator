@@ -78,7 +78,7 @@ pipeline {
                 }
             }
         }
-    } // This closing brace was missing
+    }
 
     post {
         always {
