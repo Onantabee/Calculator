@@ -50,18 +50,23 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Buiid') {
             steps {
-                sh "./gradlew build"
                 withCredentials([usernamePassword(
                     credentialsId: 'docker-hub-credentials',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
+                        # Force Jenkins to use a fresh config
+                        mkdir -p $WORKSPACE/.docker
+                        echo '{ "auths": {} }' > $WORKSPACE/.docker/config.json
+                        export DOCKER_CONFIG=$WORKSPACE/.docker
+
+                        # Login and push
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push onantabee/calculator:latest
                     '''
-                    sh "docker build -t onantabee/calculator:latest ."
                 }
             }
         }
