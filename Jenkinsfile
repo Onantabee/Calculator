@@ -62,7 +62,11 @@ pipeline {
                 )]) {
                     sh '''
                         mkdir -p $DOCKER_CONFIG
-                        echo '{ "auths": {} }' > $DOCKER_CONFIG/config.json
+                        cat > $DOCKER_CONFIG/config.json <<EOF
+        {
+          "credsStore": ""
+        }
+        EOF
 
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
