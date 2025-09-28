@@ -1,5 +1,8 @@
 pipeline {
     agent { label 'pipeline' }
+    environment {
+            DOCKER_CONFIG = "${WORKSPACE}/.docker"
+        }
 
     stages {
         stage('Checkout') {
@@ -50,7 +53,7 @@ pipeline {
             }
         }
 
-        stage('Buiid') {
+        stage('Build') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'docker-hub-credentials',
@@ -58,31 +61,27 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
-                        # Force Jenkins to use a fresh config
-                        mkdir -p $WORKSPACE/.docker
-                        echo '{ "auths": {} }' > $WORKSPACE/.docker/config.json
-                        export DOCKER_CONFIG=$WORKSPACE/.docker
+                        mkdir -p $DOCKER_CONFIG
+                        echo '{ "auths": {} }' > $DOCKER_CONFIG/config.json
 
-                        # Login and push
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                        docker build -t onantabee/calculator:latest .
                         docker push onantabee/calculator:latest
                     '''
                 }
             }
         }
 
-        stage('Deploy') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker-hub-credentials',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                    sh "docker push onantabee/calculator:latest"
-                }
-            }
-        }
+//         stage('Deploy') {
+//             steps {
+//                 sh '''
+//                     docker pull onantabee/calculator:latest
+//                     docker rm -f calculator-app || true
+//                     docker run -d --rm --name calculator-app -p 8080:8080 onantabee/calculator:latest
+//                 '''
+//             }
+//         }
     }
 
     post {
