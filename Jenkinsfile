@@ -63,15 +63,16 @@ pipeline {
                     sh '''
                         mkdir -p $DOCKER_CONFIG
                         cat > $DOCKER_CONFIG/config.json <<EOF
-        {
-          "credsStore": ""
-        }
-        EOF
+                        {
+                          "auths": {}
+                        }
+                        EOF
 
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
-                        docker build -t onantabee/calculator:latest .
-                        docker push onantabee/calculator:latest
+                        # Explicit build + push
+                        docker build -t $DOCKER_USER/calculator:latest .
+                        docker push $DOCKER_USER/calculator:latest
                     '''
                 }
             }
