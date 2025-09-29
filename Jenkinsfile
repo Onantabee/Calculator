@@ -1,5 +1,8 @@
 pipeline {
     agent { label 'pipeline' }
+    environment {
+        DOCKER_CONFIG = "${WORKSPACE}/.docker"
+    }
 
     stages {
         stage('Checkout') {
@@ -47,9 +50,13 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                    sh "docker build -t onantabee/calculator ."
-                    sh "docker push onantabee/calculator"
+                    sh '''
+                    mkdir -p $DOCKER_CONFIG
+                    echo '{"credsStore":""}' > $DOCKER_CONFIG/config.json
+                    echo $DOCKER_PASS | docker --config $DOCKER_CONFIG login -u $DOCKER_USER --password-stdin
+                    docker --config $DOCKER_CONFIG build -t onantabee/calculator .
+                    docker --config $DOCKER_CONFIG push onantabee/calculator
+                    '''
                 }
             }
         }
