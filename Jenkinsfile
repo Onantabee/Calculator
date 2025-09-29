@@ -51,9 +51,16 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
+                    # Make sure Docker config folder exists
                     mkdir -p $DOCKER_CONFIG
-                    echo '{"credsStore":""}' > $DOCKER_CONFIG/config.json
+
+                    # Overwrite config.json to disable keychain and avoid storing credentials
+                    echo '{"auths":{}, "credsStore":""}' > $DOCKER_CONFIG/config.json
+
+                    # Login using in-memory credentials (no keychain)
                     echo $DOCKER_PASS | docker --config $DOCKER_CONFIG login -u $DOCKER_USER --password-stdin
+
+                    # Build and push using the same config
                     docker --config $DOCKER_CONFIG build -t onantabee/calculator .
                     docker --config $DOCKER_CONFIG push onantabee/calculator
                     '''
