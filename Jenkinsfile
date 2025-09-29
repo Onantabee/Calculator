@@ -1,8 +1,5 @@
 pipeline {
     agent { label 'pipeline' }
-    environment {
-            DOCKER_CONFIG = "${WORKSPACE}/.docker"
-        }
 
     stages {
         stage('Checkout') {
@@ -28,9 +25,6 @@ pipeline {
             steps {
                 sh "./gradlew jacocoTestReport"
                 publishHTML(target: [
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: false,
-                    keepAll: true,
                     reportDir: 'build/reports/jacoco/test/html',
                     reportFiles: 'index.html',
                     reportName: 'JaCoCo Report'
@@ -43,9 +37,6 @@ pipeline {
             steps {
                 sh "./gradlew checkstyleMain"
                 publishHTML(target: [
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: false,
-                    keepAll: true,
                     reportDir: 'build/reports/checkstyle',
                     reportFiles: 'main.html',
                     reportName: 'Checkstyle Report'
@@ -53,40 +44,15 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Docker Build & Push') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'docker-hub-credentials',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh '''
-                        mkdir -p $DOCKER_CONFIG
-                        cat > $DOCKER_CONFIG/config.json <<EOF
-                        {
-                          "auths": {}
-                        }
-                        EOF
-
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-
-                        # Explicit build + push
-                        docker build -t $DOCKER_USER/calculator:latest .
-                        docker push $DOCKER_USER/calculator:latest
-                    '''
+                withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    sh "docker build -t onantabee/calculator ."
+                    sh "docker push onantabee/calculator"
                 }
             }
         }
-
-//         stage('Deploy') {
-//             steps {
-//                 sh '''
-//                     docker pull onantabee/calculator:latest
-//                     docker rm -f calculator-app || true
-//                     docker run -d --rm --name calculator-app -p 8080:8080 onantabee/calculator:latest
-//                 '''
-//             }
-//         }
     }
 
     post {
