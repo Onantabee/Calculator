@@ -1,8 +1,5 @@
 pipeline {
     agent { label 'pipeline' }
-    environment {
-        DOCKER_CONFIG = "${WORKSPACE}/.docker"
-    }
 
     stages {
         stage('Checkout') {
@@ -50,20 +47,9 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                    # Make sure Docker config folder exists
-                    mkdir -p $DOCKER_CONFIG
-
-                    # Overwrite config.json to disable keychain and avoid storing credentials
-                    echo '{"auths":{}, "credsStore":""}' > $DOCKER_CONFIG/config.json
-
-                    # Login using in-memory credentials (no keychain)
-                    echo $DOCKER_PASS | docker --config $DOCKER_CONFIG login -u $DOCKER_USER --password-stdin
-
-                    # Build and push using the same config
-                    docker --config $DOCKER_CONFIG build -t onantabee/calculator .
-                    docker --config $DOCKER_CONFIG push onantabee/calculator
-                    '''
+                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    sh "docker build -t onantabee/calculator ."
+                    sh "docker push onantabee/calculator"
                 }
             }
         }
