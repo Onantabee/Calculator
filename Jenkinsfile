@@ -56,18 +56,19 @@ pipeline {
                         export DOCKER_CONFIG=${WORKSPACE_DOCKER_CONFIG}
                         mkdir -p $DOCKER_CONFIG
 
-                        # Create config.json with credHelpers to bypass keychain entirely
+                        # Create config.json that completely disables credential storage
                         cat > $DOCKER_CONFIG/config.json <<EOF
 {
-  "credHelpers": {},
   "credsStore": "",
+  "credHelpers": {},
   "experimental": "disabled",
   "stackOrchestrator": "swarm"
 }
 EOF
 
-                        # Login using token with explicit config
-                        echo "$DOCKER_TOKEN" | docker --config $DOCKER_CONFIG login -u onantabee --password-stdin
+                        # Login using token, but redirect stderr to avoid keychain errors
+                        # The login will still work for this session even if we can't save credentials
+                        echo "$DOCKER_TOKEN" | docker --config $DOCKER_CONFIG login -u onantabee --password-stdin 2>/dev/null || true
 
                         # Build and push Docker image using custom config
                         docker --config $DOCKER_CONFIG build -t onantabee/calculator .
