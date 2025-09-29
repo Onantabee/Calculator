@@ -52,16 +52,16 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'docker-token', variable: 'DOCKER_TOKEN')]) {
                     sh """
-                        # Create isolated Docker config
-                        mkdir -p ${WORKSPACE_DOCKER_CONFIG}
-                        echo '{ "credsStore": "" }' > ${WORKSPACE_DOCKER_CONFIG}/config.json
+                        export DOCKER_CONFIG=${WORKSPACE}/.docker
+                        mkdir -p \$DOCKER_CONFIG
+                        echo '{ "credsStore": "" }' > \$DOCKER_CONFIG/config.json
 
                         # Login to Docker Hub using token (no Keychain)
-                        echo \$DOCKER_TOKEN | docker --config ${WORKSPACE_DOCKER_CONFIG} login -u onantabee --password-stdin
+                        echo \$DOCKER_TOKEN | docker login -u onantabee --password-stdin
 
                         # Build and push Docker image
-                        docker --config ${WORKSPACE_DOCKER_CONFIG} build -t onantabee/calculator .
-                        docker --config ${WORKSPACE_DOCKER_CONFIG} push onantabee/calculator
+                        docker build -t onantabee/calculator .
+                        docker push onantabee/calculator
                     """
                 }
             }
