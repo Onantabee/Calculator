@@ -68,11 +68,27 @@ EOF
 
                         # Login using token, but redirect stderr to avoid keychain errors
                         # The login will still work for this session even if we can't save credentials
-                        echo "$DOCKER_TOKEN" | docker --config $DOCKER_CONFIG login -u onantabee --password-stdin 2>/dev/null || true
+                        if echo "$DOCKER_TOKEN" | docker --config $DOCKER_CONFIG login -u onantabee --password-stdin 2>/dev/null; then
+                            echo "Docker login successful"
+                        else
+                            echo "WARNING: Docker login failed, but continuing with build. Push may fail if repository requires authentication."
+                        fi
 
                         # Build and push Docker image using custom config
                         docker --config $DOCKER_CONFIG build -t onantabee/calculator .
-                        docker --config $DOCKER_CONFIG push onantabee/calculator
+                        
+                        # Tag with version for better traceability
+                        docker --config $DOCKER_CONFIG tag onantabee/calculator onantabee/calculator:latest
+                        
+                        # Attempt to push and provide better error handling
+                        if ! docker --config $DOCKER_CONFIG push onantabee/calculator:latest; then
+                            echo "ERROR: Docker push failed. This could be due to:"
+                            echo "1. The repository onantabee/calculator does not exist on Docker Hub"
+                            echo "2. The credentials do not have push permissions to this repository"
+                            echo "3. Network issues or Docker Hub being temporarily unavailable"
+                            echo "Please verify the repository exists and the Jenkins credentials are correct."
+                            exit 1
+                        fi
                     '''
                 }
             }
