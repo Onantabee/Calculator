@@ -50,7 +50,7 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                withCredentials([string(credentialsId: 'docker-token', variable: 'DOCKER_TOKEN')]) {
+                withCredentials([string(credentialsId: 'docker-hub', variable: 'DOCKER_TOKEN')]) {
                     sh """
                         # Create isolated Docker config
                         mkdir -p ${WORKSPACE_DOCKER_CONFIG}
